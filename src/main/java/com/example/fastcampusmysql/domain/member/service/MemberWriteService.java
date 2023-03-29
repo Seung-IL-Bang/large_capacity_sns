@@ -1,10 +1,10 @@
-package com.example.fastcampusmysql.domain.service;
+package com.example.fastcampusmysql.domain.member.service;
 
-import com.example.fastcampusmysql.domain.dto.MemberRegisterCommand;
-import com.example.fastcampusmysql.domain.entity.Member;
-import com.example.fastcampusmysql.domain.entity.MemberNicknameHistory;
-import com.example.fastcampusmysql.domain.repository.MemberNicknameHistoryRepository;
-import com.example.fastcampusmysql.domain.repository.MemberRepository;
+import com.example.fastcampusmysql.domain.member.dto.MemberRegisterCommand;
+import com.example.fastcampusmysql.domain.member.entity.Member;
+import com.example.fastcampusmysql.domain.member.entity.MemberNicknameHistory;
+import com.example.fastcampusmysql.domain.member.repository.MemberNicknameHistoryRepository;
+import com.example.fastcampusmysql.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
