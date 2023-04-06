@@ -13,11 +13,11 @@ public class Post {
     final private Long id;
     final private Long memberId;
     final private String contents;
-    private LocalDate createdDate = null;
+    final private LocalDate createdDate;
     final private LocalDateTime createdAt;
 
     @Builder
-    public Post(Long id, Long memberId, String contents, LocalDate createDate, LocalDateTime createdAt) {
+    public Post(Long id, Long memberId, String contents, LocalDate createdDate, LocalDateTime createdAt) {
         this.id = id;
         this.memberId = Objects.requireNonNull(memberId);
         this.contents = Objects.requireNonNull(contents);
