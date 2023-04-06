@@ -106,6 +106,25 @@ public class PostRepository {
         return namedParameterJdbcTemplate.query(sql, param, rowMapper);
     }
 
+    public List<Post> findAllByInMemberIdInAndOrderByIdDesc(List<Long> memberIds, int size) {
+
+        if (memberIds.isEmpty()) {
+            return List.of();
+        }
+
+        String sql = String.format("""
+                SELECT *
+                FROM %s
+                WHERE memberId in (:memberIds)
+                ORDER BY id DESC
+                LIMIT :size
+                """, TABLE);
+
+        MapSqlParameterSource param = new MapSqlParameterSource()
+                .addValue("memberIds", memberIds)
+                .addValue("size", size);
+        return namedParameterJdbcTemplate.query(sql, param, rowMapper);
+    }
     public List<Post> findAllByLessThanIdAndMemberIdInAndOrderByIdDesc(Long id, Long memberId, int size) {
         String sql = String.format("""
                 SELECT *
@@ -121,7 +140,36 @@ public class PostRepository {
         return namedParameterJdbcTemplate.query(sql, param, rowMapper);
 
     }
+    public List<Post> findAllByLessThanIdAndInMemberIdInAndOrderByIdDesc(Long id, List<Long> memberIds, int size) {
+        String sql = String.format("""
+                SELECT *
+                FROM %s
+                WHERE memberId in (:memberIds) and id < :id
+                ORDER BY id DESC
+                LIMIT :size
+                """, TABLE);
+        MapSqlParameterSource param = new MapSqlParameterSource()
+                .addValue("memberIds", memberIds)
+                .addValue("id", id)
+                .addValue("size", size);
+        return namedParameterJdbcTemplate.query(sql, param, rowMapper);
 
+    }
+
+    public List<Post> findAllByInId(List<Long> ids) {
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        String sql = String.format("""
+                SELECT *
+                FROM %s
+                WHERE id in (:ids)
+                """, TABLE);
+        MapSqlParameterSource param = new MapSqlParameterSource()
+                .addValue("ids", ids);
+        return namedParameterJdbcTemplate.query(sql, param, rowMapper);
+
+    }
     private Long getCount(Long memberId) {
         String sql = String.format("""
                 SELECT count(id)
@@ -131,6 +179,7 @@ public class PostRepository {
         MapSqlParameterSource param = new MapSqlParameterSource().addValue("memberId", memberId);
         return namedParameterJdbcTemplate.queryForObject(sql, param, Long.class);
     }
+
 
     public Post save(Post post) {
         if (post.getId() == null) {
