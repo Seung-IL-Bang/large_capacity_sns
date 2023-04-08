@@ -76,3 +76,7 @@ create table PostLike
     constraint PostLike_id_uindex
         primary key (id)
 );
+
+alter table POST add column likeCount int;
+
+alter table POST add column  version int default 0;

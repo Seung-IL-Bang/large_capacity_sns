@@ -1,5 +1,6 @@
 package com.example.fastcampusmysql.domain.post.repository;
 
+import com.example.fastcampusmysql.domain.member.entity.Member;
 import com.example.fastcampusmysql.util.PageHelper;
 import com.example.fastcampusmysql.domain.post.dto.DailyPostCount;
 import com.example.fastcampusmysql.domain.post.dto.DailyPostCountRequest;
@@ -20,6 +21,7 @@ import java.sql.ResultSet;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Repository
@@ -35,6 +37,8 @@ public class PostRepository {
             .contents(resultSet.getString("contents"))
             .createdDate(resultSet.getObject("createdDate", LocalDate.class))
             .createdAt(resultSet.getObject("createdAt", LocalDateTime.class))
+            .likeCount(resultSet.getLong("likeCount"))
+            .version(resultSet.getLong("version"))
             .build();
 
     final static private RowMapper<DailyPostCount> DAILY_POST_COUNT_ROW_MAPPER
@@ -170,6 +174,19 @@ public class PostRepository {
         return namedParameterJdbcTemplate.query(sql, param, rowMapper);
 
     }
+
+    public Optional<Post> findById(Long postId, Boolean requiredLock) {
+        String sql = String.format("""
+                SELECT * FROM %s WHERE id = :postId
+                """, TABLE);
+        if (requiredLock) { // Boolean을 파라미터로 받는 이유는 모든 조회 쿼리에 대해 락을 얻는 것은 성능 저하가 발생하기 때문이다.
+            sql += " FOR UPDATE";
+        }
+        MapSqlParameterSource param = new MapSqlParameterSource().addValue("postId", postId);
+        Post post = namedParameterJdbcTemplate.queryForObject(sql, param, rowMapper);
+        return Optional.ofNullable(post);
+    }
+
     private Long getCount(Long memberId) {
         String sql = String.format("""
                 SELECT count(id)
@@ -185,7 +202,7 @@ public class PostRepository {
         if (post.getId() == null) {
             return insert(post);
         }
-        throw new UnsupportedOperationException("Post는 갱신을 지원하지 않습니다.");
+        return update(post);
     }
 
     private Post insert(Post post) {
@@ -206,5 +223,24 @@ public class PostRepository {
                 .createdAt(post.getCreatedAt())
                 .build();
 
+    }
+
+    private Post update(Post post) {
+        String sql = String.format("""
+                UPDATE %s SET
+                    memberId = :memberId,
+                    contents = :contents,
+                    likeCount = :likeCount,
+                    createdDate = :createdDate,
+                    createdAt = :createdAt,
+                    version = :version + 1
+                WHERE id = :id and version = :version
+                """, TABLE);
+        SqlParameterSource param = new BeanPropertySqlParameterSource(post);
+        int updateRowCount = namedParameterJdbcTemplate.update(sql, param); // 반환값으로 업데이트된 레코드 수를 반환한다.
+        if (updateRowCount == 0) {
+            throw new RuntimeException("갱신 실패");
+        }
+        return post;
     }
 }
